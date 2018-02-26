@@ -3,5 +3,7 @@
 *.iml
 out
 gen
-TemperatureSensor/node_modules/
+/TemperatureSensor/node_modules/
+/TemperatureSensor/configuration.json
 */package-lock.json
+/SensorCertificates/
