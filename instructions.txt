@@ -1,0 +1,11 @@
+WiringPi - install
+
+enable /boot/config.txt
+dtoverlay=w1-gpio
+
+enable + configure SSH
+
+Security
+https://makezine.com/2017/09/07/secure-your-raspberry-pi-against-attackers/
+Smart Plug
+https://github.com/timleland/rfoutlet/blob/master/RFSource/codesend.cpp
