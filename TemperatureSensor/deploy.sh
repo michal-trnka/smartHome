@@ -8,6 +8,6 @@ ls ../
 echo "next"
 ls ../../
 echo "next"
-ssh-add key
+ssh-add /tmp/deploy_rsa
 echo "ssh added"
 ssh pi@129.62.149.69 pwd
