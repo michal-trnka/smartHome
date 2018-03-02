@@ -11,7 +11,7 @@ matrix:
     before_deploy:
       - pwd
       - openssl aes-256-cbc -K $encrypted_8b0ed1ea9cad_key -iv $encrypted_8b0ed1ea9cad_iv
-                -in raspberryKey -out /key -d
+                -in raspberryKey -out key -d
     deploy:
       provider: script
       script: bash deploy.sh
