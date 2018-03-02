@@ -1,4 +1,4 @@
 echo "deploying"
-ssh-add raspberryPriv
+ssh-add key
 echo "ssh added"
-ls
+ssh pi@129.62.149.69 pwd
