@@ -9,6 +9,7 @@ matrix:
       - 8.9.4
     script: true
     before_deploy:
+      - pwd
       - openssl aes-256-cbc -K $encrypted_b5b03cf41a2d_key -iv $encrypted_b5b03cf41a2d_iv
           -in raspberryPriv.enc -out raspberryPriv -d
     deploy:
