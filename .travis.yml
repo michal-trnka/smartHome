@@ -2,6 +2,8 @@ dist: trusty
 sudo: false
 matrix:
   include:
+    addons:
+      ssh_known_hosts: 129.62.149.69
     before_install:
       - cd TemperatureSensor
     language: node_js
