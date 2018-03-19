@@ -62,5 +62,5 @@ setInterval(() => {
         return;
     }
     console.log(`Temperature is: ${temperature}`);
-    //device.publish("temperature",temperature.toString())
+    device.publish("temperature",temperature.toString())
 }, 60000);
