@@ -6,7 +6,7 @@ const CONFIG = require('./configuration.json');
 const DATA_DIR_PREFIX = "28-";
 const SENSOR_PRECISION = 1000;
 
-let extractTemperatureFromFile = function (fileName) {
+let extractTemperatureFromFile = fileName => {
     let content = fs.readFileSync(fileName, "utf8");
     content = content.split(/\r?\n/);
     content = content.filter(line => {
@@ -23,17 +23,23 @@ let extractTemperatureFromFile = function (fileName) {
     return temperature / SENSOR_PRECISION;
 };
 
-//set up file with temperature
-let dirContent = fs.readdirSync(CONFIG.pathLocation);
-//temperature measurments are located in a specific subdir with dir starting with "28"
-let sensorDirName = dirContent.filter(elem => {
-    return elem.startsWith(DATA_DIR_PREFIX);
-});
-let directoryPath = CONFIG.pathLocation + "\\" + sensorDirName;
-let filePath = path.format({
-    dir: directoryPath,
-    base: CONFIG.dataFileName
-});
+
+let getDataFilePath = (directoryPath, fileName) => {
+    let dirContent = fs.readdirSync(directoryPath);
+
+    //temperature measurments are located in a specific subdir with dir starting with "28"
+    let sensorDirName = dirContent.filter(elem => {
+        return elem.startsWith(DATA_DIR_PREFIX);
+    });
+    directoryPath = directoryPath + "\\" + sensorDirName;
+    //set up file with temperature
+    return path.format({
+        dir: directoryPath,
+        base: fileName
+    });
+};
+
+let filePath = getDataFilePath(CONFIG.pathLocation, CONFIG.dataFileName)
 
 //set up AWS device
 let device = awsIot.device({
@@ -44,7 +50,7 @@ let device = awsIot.device({
     caPath: CONFIG.rootCa
 });
 
-setInterval(async function () {
+setInterval(() => {
     let temperature = extractTemperatureFromFile(filePath);
     if (temperature === false) {
         return;
