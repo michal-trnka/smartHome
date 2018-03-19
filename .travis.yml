@@ -20,6 +20,6 @@ matrix:
     deploy:
       skip_cleanup: true
       provider: script
-      script: rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/TemperatureSensor/app.js pi@129.62.149.69:/home/pi/
+      script: bash deploy.sh
       on:
         branch: master
