@@ -32,7 +32,7 @@ let getDataFilePath = (directoryPath, fileName) => {
     let sensorDirName = dirContent.filter(elem => {
         return elem.startsWith(DATA_DIR_PREFIX);
     });
-    directoryPath = directoryPath + "\\" + sensorDirName;
+    directoryPath = directoryPath + path.sep + sensorDirName;
     //set up file with temperature
     return path.format({
         dir: directoryPath,
