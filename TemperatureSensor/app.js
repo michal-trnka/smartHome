@@ -1,6 +1,7 @@
 const awsIot = require('aws-iot-device-sdk');
 const fs = require("fs");
 const path = require("path");
+require('console-stamp')(console, '[HH:MM:ss.l]');
 
 const CONFIG = require('./configuration.json');
 const DATA_DIR_PREFIX = "28-";
@@ -39,8 +40,11 @@ let getDataFilePath = (directoryPath, fileName) => {
     });
 };
 
-let filePath = getDataFilePath(CONFIG.pathLocation, CONFIG.dataFileName)
+console.log("Getting data file path");
+let filePath = getDataFilePath(CONFIG.pathLocation, CONFIG.dataFileName);
+console.log(`Data file path is: ${filePath}`);
 
+console.log("Setting up AWS connection");
 //set up AWS device
 let device = awsIot.device({
     keyPath: CONFIG.privKey,
@@ -50,10 +54,13 @@ let device = awsIot.device({
     caPath: CONFIG.rootCa
 });
 
+console.log("Starting periodical function to poll the temperature");
 setInterval(() => {
     let temperature = extractTemperatureFromFile(filePath);
     if (temperature === false) {
+        console.warn("No temperature found");
         return;
     }
-    device.publish("temperature",temperature.toString())
+    console.log(`Temperature is: ${temperature}`);
+    //device.publish("temperature",temperature.toString())
 }, 60000);
