@@ -1,0 +1,15 @@
+{
+  "name": "heatercontroller",
+  "version": "1.0.0",
+  "description": "Heater controller app working based on instructions from cloud",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-iot-device-sdk": "^2.2.1",
+    "console-stamp": "^0.2.6"
+  }
+}
