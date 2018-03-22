@@ -62,5 +62,8 @@ setInterval(() => {
         return;
     }
     console.log(`Temperature is: ${temperature}`);
-    device.publish("temperature",temperature.toString())
+    device.publish("temperature",JSON.stringify({
+        temperature: temperature,
+        time: new Date().getTime(),
+    }));
 }, 60000);
