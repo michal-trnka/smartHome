@@ -65,6 +65,6 @@ setInterval(() => {
     device.publish("temperature",JSON.stringify({
         temperature: temperature,
         time: new Date().getTime(),
-        clientId: CONFIG.clientId,
+        sensorId: CONFIG.clientId,
     }));
 }, 60000);
