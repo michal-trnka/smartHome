@@ -1,7 +1,5 @@
 dist: trusty
 sudo: false
-addons:
-  ssh_known_hosts: 129.62.149.69
 matrix:
   include:
     - before_install:
@@ -10,7 +8,7 @@ matrix:
       provider: lambda
       jdk: oraclejdk8
       install: true
-      script: ./mvn clean install
+      script: mvn clean install
       deploy:
         provider: lambda
         access_key_id: $aws_lambda_id
@@ -25,6 +23,8 @@ matrix:
 
     - before_install:
         - cd TemperatureSensor
+      addons:
+        ssh_known_hosts: 129.62.149.69
       language: node_js
       node_js:
         - 8.9.4
