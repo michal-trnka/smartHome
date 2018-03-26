@@ -15,7 +15,7 @@ matrix:
         secret_access_key: $aws_lambda_key
         function_name: "GetIoTTemperatures"
         region: "eu-central-1"
-        role: "arn:aws:lambda:eu-central-1:921550682578:function:GetIoTTemperatures"
+        role: "arn:aws:iam::921550682578:role/Lambda-dynamoRWAndLog"
         runtime: "java8"
         handler_name: "cz.michaltrnka.smarthome.lambda.temperature_history.Handler::handleRequest"
         on:
