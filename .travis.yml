@@ -20,7 +20,7 @@ matrix:
         role: "arn:aws:iam::921550682578:role/Lambda-dynamoRWAndLog"
         runtime: "java8"
         module_name: "cz"
-        zip: "target/classes/"
+        zip: "target/classes/" #ugly hack, travis can't transfer jar file :(
         handler_name: "michaltrnka.smarthome.lambda.temperature_history.Handler::handleRequest"
         on:
           branch: master
