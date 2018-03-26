@@ -17,6 +17,8 @@ matrix:
         region: "eu-central-1"
         role: "arn:aws:iam::921550682578:role/Lambda-dynamoRWAndLog"
         runtime: "java8"
+        module_name: ""
+        zip: "./target/temperature-history.jar"
         handler_name: "cz.michaltrnka.smarthome.lambda.temperature_history.Handler::handleRequest"
         on:
           branch: master
