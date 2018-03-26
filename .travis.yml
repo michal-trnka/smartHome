@@ -4,6 +4,8 @@ matrix:
   include:
     - before_install:
         - cd TemperatureHistory
+      addons:
+        artifacts: true
       language: java
       provider: lambda
       jdk: oraclejdk8
