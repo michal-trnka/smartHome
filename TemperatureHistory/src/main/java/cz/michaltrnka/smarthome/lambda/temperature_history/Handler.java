@@ -24,7 +24,7 @@ public class Handler implements RequestHandler<Object, String> {
 
 
         context.getLogger().log("Input: " + input);
-        String output = "Hello, " + input + "! + \n Lamba result: \n"+ /*tables.getMaxResultSize()*/;
+        String output = "Hello, " + input + "! + \n Lamba result: \n"/*+ tables.getMaxResultSize()*/;
         return output;
     }
 
