@@ -16,15 +16,15 @@ public class Handler implements RequestHandler<Object, String> {
 
     public String handleRequest(Object input, Context context) {
         AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-        client.setRegion(Region.getRegion(Regions.EU_CENTRAL_1));
-        DynamoDB dynamoDb = new DynamoDB(client);
-        TableCollection<ListTablesResult> tables = dynamoDb.listTables();
+        //client.setRegion(Region.getRegion(Regions.EU_CENTRAL_1));
+        //DynamoDB dynamoDb = new DynamoDB(client);
+        //TableCollection<ListTablesResult> tables = dynamoDb.listTables();
 
         //Item i = dynamoDb.getTable(DYNAMODB_TABLE_NAME).getItem("sensor_id", "temperatureSensor", "timestamp", 1521757111420l);
 
 
         context.getLogger().log("Input: " + input);
-        String output = "Hello, " + input + "! + \n Lamba result: \n"+ tables.getMaxResultSize();
+        String output = "Hello, " + input + "! + \n Lamba result: \n"+ /*tables.getMaxResultSize()*/;
         return output;
     }
 
