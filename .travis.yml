@@ -10,7 +10,16 @@ matrix:
       provider: lambda
       jdk: oraclejdk8
       install: true
-      script: mvn clean install
+      script: mvn package
+      before_deploy:
+      before_deploy:
+        - mkdir lambda
+        - mv target/temperature-history.jar lambda
+        - cd lambda
+        - jar xf temperature-history.jar
+        - rm temperature-history.jar
+        - cd ..
+        - ls -la lambda
       deploy:
         provider: lambda
         access_key_id: $aws_lambda_id
@@ -20,7 +29,7 @@ matrix:
         role: "arn:aws:iam::921550682578:role/Lambda-dynamoRWAndLog"
         runtime: "java8"
         module_name: "cz"
-        zip: "target/classes/" #ugly hack, travis can't transfer jar file :(
+        zip: "lambda" #ugly hack, travis can't transfer jar file :(
         handler_name: "michaltrnka.smarthome.lambda.temperature_history.Handler::handleRequest"
         on:
           branch: master

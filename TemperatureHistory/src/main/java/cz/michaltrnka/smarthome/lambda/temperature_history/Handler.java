@@ -4,8 +4,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.TableKeysAndAttributes;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -19,15 +18,12 @@ public class Handler implements RequestHandler<Object, String> {
         client.setRegion(Region.getRegion(Regions.EU_CENTRAL_1));
         DynamoDB dynamoDb = new DynamoDB(client);
 
-        //QuerySpec querySpec = new QuerySpec().
-        //        withKeyConditionExpression();
 
-        //dynamoDb.getTable(DYNAMODB_TABLE_NAME).ba;
-        ScanRequest scanRequest = new ScanRequest().withTableName(DYNAMODB_TABLE_NAME);
-        ScanResult scanResult = client.scan(scanRequest);
+        Item i = dynamoDb.getTable(DYNAMODB_TABLE_NAME).getItem("sensor_id", "temperatureSensor", "timestamp", 1521757111420l);
+
 
         context.getLogger().log("Input: " + input);
-        String output = "Hello, " + input + "! + \n Lamba result: "+ scanResult.getCount();
+        String output = "Hello, " + input + "! + \n Lamba result: \n"+ i.toJSONPretty();
         return output;
     }
 
