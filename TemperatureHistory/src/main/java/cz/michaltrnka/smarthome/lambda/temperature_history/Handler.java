@@ -39,7 +39,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         JSONArray json = new JSONArray();
         for (long time : times) {
-            context.getLogger().log(time+"");
+            context.getLogger().log(time+"\n");
             try {
                 json.put(getResultForTime(time));
             } catch (NoResultException e) {
@@ -110,6 +110,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
             items = table.query(querySpec);
         }
         if(items.getAccumulatedItemCount()==0){
+            System.out.print(items.iterator().next()+"\n");
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
