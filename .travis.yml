@@ -32,7 +32,7 @@ matrix:
         zip: "lambda" #ugly hack, travis can't transfer jar file :(
         handler_name: "michaltrnka.smarthome.lambda.temperature_history.Handler::handleRequest"
         timeout: 15 #cold starts take ages
-        memory_size: 512 #cold starts take ages
+        memory_size: 2048 #cold starts take ages
         on:
           branch: master
 
