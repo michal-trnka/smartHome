@@ -137,7 +137,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
                 .withMaxResultSize(1)
                 .withProjectionExpression("#v")
                 .withNameMap(nameMap);
-        Map<String, Object> map = (Map) table.query(querySpec).iterator().next().get("value");
+        Map map = (Map) table.query(querySpec).iterator().next().get("value");
         return Long.parseLong((String)map.get("time"));
     }
 }
