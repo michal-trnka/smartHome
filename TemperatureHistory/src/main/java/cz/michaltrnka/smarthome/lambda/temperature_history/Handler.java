@@ -62,6 +62,12 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         if (to == 0) {
             to = new Date().getTime();
         }
+
+        if(from==0){
+            from = getEarliestEntry();
+            System.out.print(from);
+        }
+
         if (to < from) {
             long temp = to;
             to = from;
@@ -113,5 +119,16 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
+    }
+
+    private long getEarliestEntry(){
+        QuerySpec querySpec = new QuerySpec()
+                .withKeyConditionExpression("sensor_id = :id")
+
+                .withValueMap(new ValueMap()
+                        .withString(":id", SENSOR_ID))
+                .withMaxResultSize(1)
+                .withAttributesToGet("timestamp");
+        return Long.parseLong(table.query(querySpec).iterator().next().getJSON("timestamp"));
     }
 }
