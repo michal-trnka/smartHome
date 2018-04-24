@@ -6,12 +6,14 @@ import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.json.JSONArray;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
@@ -37,6 +39,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         JSONArray json = new JSONArray();
         for (long time : times) {
+            context.getLogger().log(time+"");
             try {
                 json.put(getResultForTime(time));
             } catch (NoResultException e) {
@@ -85,12 +88,13 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         Map<String, String> nameMap = new HashMap<String, String>();
         nameMap.put("#t", "timestamp");
         QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("sensor_id = :id and #t < :time")
+                .withKeyConditionExpression("sensor_id = :id and #t <= :time")
                 .withNameMap(nameMap)
                 .withValueMap(new ValueMap()
                         .withString(":id", SENSOR_ID)
                         .withLong(":time", time))
-                .withMaxResultSize(1);
+                .withMaxResultSize(1)
+                .withScanIndexForward(false);
 
         ItemCollection<QueryOutcome> items = table.query(querySpec);
         //get the closest higher result
