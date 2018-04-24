@@ -21,7 +21,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String VALUE_FIELD_NAME = "value";
     private final String SORT_TIMESTAMP_NAME = "timestamp";
     private final String SENSOR_ID_FIELD_NAME = "sensor_id";
-    private final String VALUE_TIMESTAMP_FULL_NAME = "value.timestamp";
+    private final String VALUE_TIMESTAMP_FULL_NAME = "value.time";
     private final int COUNT = 100;
     private Table table;
 
