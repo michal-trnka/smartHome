@@ -120,6 +120,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
             items = table.query(querySpec);
         }
         if (!items.iterator().hasNext()) {
+            System.out.print(items.getAccumulatedItemCount());
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
@@ -134,7 +135,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
                 .withValueMap(new ValueMap()
                         .withString(":id", SENSOR_ID))
                 .withMaxResultSize(1)
-                .withAttributesToGet(VALUE_TIMESTAMP_FULL_NAME);
+                .withProjectionExpression(VALUE_TIMESTAMP_FULL_NAME);
         System.out.print(table.query(querySpec).iterator().next().toString()+"\n");
         return Long.parseLong(table.query(querySpec).iterator().next().toString());
     }
