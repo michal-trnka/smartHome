@@ -98,7 +98,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         ItemCollection<QueryOutcome> items = table.query(querySpec);
         //get the closest higher result
-        if (items.getAccumulatedItemCount() == 0) {
+        if (!items.iterator().hasNext()) {
             querySpec = new QuerySpec()
                     .withKeyConditionExpression("sensor_id = :id and #t > :time")
                     .withNameMap(nameMap)
@@ -109,8 +109,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
             items = table.query(querySpec);
         }
-        if(items.getAccumulatedItemCount()==0){
-            System.out.print(items.iterator().next()+"\n");
+        if(!items.iterator().hasNext()){
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
