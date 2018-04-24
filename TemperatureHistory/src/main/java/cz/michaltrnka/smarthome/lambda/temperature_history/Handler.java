@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.json.JSONArray;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,6 +139,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
                 .withProjectionExpression("#v")
                 .withNameMap(nameMap);
         Map map = (Map) table.query(querySpec).iterator().next().get("value");
-        return Long.parseLong((String)map.get("time"));
+        BigDecimal time = (BigDecimal) map.get("time");
+        return time.longValue();
     }
 }
