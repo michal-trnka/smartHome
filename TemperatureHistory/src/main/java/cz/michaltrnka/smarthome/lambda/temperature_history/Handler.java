@@ -129,7 +129,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private long getEarliestEntry() {
         Map<String, String> nameMap = new HashMap<String, String>();
         nameMap.put("#s", SENSOR_ID_FIELD_NAME);
-        nameMap.put("#v", "value");
+        nameMap.put("#v", "value.time");
         QuerySpec querySpec = new QuerySpec()
                 .withKeyConditionExpression("#s = :id")
                 .withValueMap(new ValueMap()
