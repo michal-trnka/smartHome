@@ -13,6 +13,8 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.json.JSONArray;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
@@ -32,9 +34,12 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         long from = input.getFrom();
         long to = input.getTo() == 0L ? new Date().getTime() : input.getTo();
+        Map<String, String> nameMap = new HashMap<String, String>();
+        nameMap.put("#t","timestamp");
 
         QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("sensor_id = :id and timestamp between :from and :to")
+                .withKeyConditionExpression("sensor_id = :id and #t between :from and :to")
+                .withNameMap(nameMap)
                 .withValueMap(new ValueMap()
                     .withString(":id",SENSOR_ID)
                     .withLong(":from", from)
