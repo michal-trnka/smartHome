@@ -4,32 +4,51 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import org.json.JSONArray;
+
+import java.util.Date;
 
 public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
+    private final String SENSOR_ID = "temperatureSensor";
 
     /**
      * Gets temperature history.
-     *
+     * <p>
      * From and To parameters are inclusive,
      *
-     * @param input Input to get temperatures from to date, including
+     * @param input   Input to get temperatures from to date, including
      * @param context
      * @return
      */
     public String handleRequest(TemperatureRequest input, Context context) {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-
         DynamoDB dynamoDb = new DynamoDB(client);
 
-        Item i = dynamoDb.getTable(DYNAMODB_TABLE_NAME).getItem("sensor_id", "temperatureSensor", "timestamp", 1521757111420l);
+        long from = input.getFrom();
+        long to = input.getTo() == 0l ? new Date().getTime() : input.getTo();
 
+        QuerySpec querySpec = new QuerySpec()
+                .withKeyConditionExpression("sensor_id = :id and timestamp between :from and :to")
+                .withValueMap(new ValueMap()
+                    .withString(":id",SENSOR_ID)
+                    .withLong(":from", from)
+                    .withLong("to", to));
 
-        context.getLogger().log("Input: " + input);
-        String output = "Hello, " + input + "! + \n Input: \n" + input.getFrom().toString();
-        return output;
+        ItemCollection<QueryOutcome> items = dynamoDb.getTable(DYNAMODB_TABLE_NAME).query(querySpec);
+
+        JSONArray json = new JSONArray();
+        for(Item item : items){
+            json.put(item.toJSONPretty());
+        }
+
+        return json.toString();
     }
 
 }

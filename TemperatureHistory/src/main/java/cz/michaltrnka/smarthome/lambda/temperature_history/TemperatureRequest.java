@@ -1,24 +1,22 @@
 package cz.michaltrnka.smarthome.lambda.temperature_history;
 
-import java.util.Date;
-
 public class TemperatureRequest {
-    private Date from;
-    private Date to;
+    private long from;
+    private long to;
 
-    public Date getFrom() {
+    public long getFrom() {
         return from;
     }
 
-    public void setFrom(Date from) {
+    public void setFrom(long from) {
         this.from = from;
     }
 
-    public Date getTo() {
+    public long getTo() {
         return to;
     }
 
-    public void setTo(Date to) {
+    public void setTo(long to) {
         this.to = to;
     }
 }
