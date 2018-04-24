@@ -129,13 +129,14 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private long getEarliestEntry() {
         Map<String, String> nameMap = new HashMap<String, String>();
         nameMap.put("#s", SENSOR_ID_FIELD_NAME);
+        nameMap.put("#v", VALUE_TIMESTAMP_FULL_NAME);
         QuerySpec querySpec = new QuerySpec()
                 .withKeyConditionExpression("#s = :id")
-                .withNameMap(nameMap)
                 .withValueMap(new ValueMap()
                         .withString(":id", SENSOR_ID))
                 .withMaxResultSize(1)
-                .withProjectionExpression(VALUE_TIMESTAMP_FULL_NAME);
+                .withProjectionExpression("#v")
+                .withNameMap(nameMap);
         System.out.print(table.query(querySpec).iterator().next().toString()+"\n");
         return Long.parseLong(table.query(querySpec).iterator().next().toString());
     }
