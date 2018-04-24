@@ -21,7 +21,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String VALUE_FIELD_NAME = "value";
     private final String SORT_TIMESTAMP_NAME = "timestamp";
     private final String SENSOR_ID_FIELD_NAME = "sensor_id";
-    private final String VALUE_TIMESTAMP_FULL_NAME = "value.time";
+    private final String VALUE_NAME = "value";
     private final int COUNT = 100;
     private Table table;
 
@@ -129,7 +129,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private long getEarliestEntry() {
         Map<String, String> nameMap = new HashMap<String, String>();
         nameMap.put("#s", SENSOR_ID_FIELD_NAME);
-        nameMap.put("#v", "value.time");
+        nameMap.put("#v", VALUE_FIELD_NAME);
         QuerySpec querySpec = new QuerySpec()
                 .withKeyConditionExpression("#s = :id")
                 .withValueMap(new ValueMap()
@@ -137,7 +137,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
                 .withMaxResultSize(1)
                 .withProjectionExpression("#v")
                 .withNameMap(nameMap);
-        System.out.print(table.query(querySpec).iterator().next().toString()+"\n");
+        System.out.print(table.query(querySpec).iterator().next().getJSON("time").toString()+"\n");
         return Long.parseLong(table.query(querySpec).iterator().next().toString());
     }
 }
