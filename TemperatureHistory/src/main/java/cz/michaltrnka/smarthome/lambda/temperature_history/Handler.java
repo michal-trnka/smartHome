@@ -24,22 +24,21 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
      * From and To parameters are inclusive,
      *
      * @param input   Input to get temperatures from to date, including
-     * @param context
-     * @return
+     * @return JSON array of found temperature records
      */
     public String handleRequest(TemperatureRequest input, Context context) {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
         DynamoDB dynamoDb = new DynamoDB(client);
 
         long from = input.getFrom();
-        long to = input.getTo() == 0l ? new Date().getTime() : input.getTo();
+        long to = input.getTo() == 0L ? new Date().getTime() : input.getTo();
 
         QuerySpec querySpec = new QuerySpec()
                 .withKeyConditionExpression("sensor_id = :id and timestamp between :from and :to")
                 .withValueMap(new ValueMap()
                     .withString(":id",SENSOR_ID)
                     .withLong(":from", from)
-                    .withLong("to", to));
+                    .withLong(":to", to));
 
         ItemCollection<QueryOutcome> items = dynamoDb.getTable(DYNAMODB_TABLE_NAME).query(querySpec);
 
