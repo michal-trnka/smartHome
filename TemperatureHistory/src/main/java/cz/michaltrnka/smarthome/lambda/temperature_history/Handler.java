@@ -19,6 +19,7 @@ import java.util.Map;
 public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
     private final String SENSOR_ID = "temperatureSensor";
+    private final String VALUE_FIELD_NAME = "value";
 
     /**
      * Gets temperature history.
@@ -49,7 +50,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         JSONArray json = new JSONArray();
         for(Item item : items){
-            json.put(item.toJSONPretty());
+            json.put(item.getJSONPretty(VALUE_FIELD_NAME));
         }
 
         return json.toString();
