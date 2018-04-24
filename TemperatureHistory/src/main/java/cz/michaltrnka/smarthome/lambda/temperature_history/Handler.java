@@ -36,8 +36,12 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         long[] times = getTimes(input.getFrom(), input.getTo(), COUNT);
 
         JSONArray json = new JSONArray();
-        for (int i = 0; i < times.length; i++) {
-            json.put(getResultForTime(times[i]));
+        for (long time : times) {
+            try {
+                json.put(getResultForTime(time));
+            } catch (NoResultException e) {
+                // nothing to do
+            }
         }
 
         return json.toString();
@@ -77,7 +81,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         return times;
     }
 
-    public String getResultForTime(long time) {
+    public String getResultForTime(long time) throws NoResultException {
         Map<String, String> nameMap = new HashMap<String, String>();
         nameMap.put("#t", "timestamp");
         QuerySpec querySpec = new QuerySpec()
@@ -101,7 +105,9 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
             items = table.query(querySpec);
         }
-
-        return items.iterator().next().getJSONPretty(VALUE_FIELD_NAME);
+        if(items.getAccumulatedItemCount()==0){
+            throw new NoResultException();
+        }
+        return items.iterator().next().getJSON(VALUE_FIELD_NAME);
     }
 }
