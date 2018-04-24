@@ -19,6 +19,9 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
     private final String SENSOR_ID = "temperatureSensor";
     private final String VALUE_FIELD_NAME = "value";
+    private final String SORT_TIMESTAMP_NAME = "timestamp";
+    private final String SENSOR_ID_FIELD_NAME = "sensor_id";
+    private final String VALUE_TIMESTAMP_FULL_NAME = "value.timestamp";
     private final int COUNT = 100;
     private Table table;
 
@@ -39,7 +42,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
         JSONArray json = new JSONArray();
         for (long time : times) {
-            context.getLogger().log(time+"\n");
+            context.getLogger().log(time + "\n");
             try {
                 json.put(getResultForTime(time));
             } catch (NoResultException e) {
@@ -63,7 +66,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
             to = new Date().getTime();
         }
 
-        if(from==0){
+        if (from == 0) {
             from = getEarliestEntry();
             System.out.print(from);
         }
@@ -92,9 +95,10 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
     public String getResultForTime(long time) throws NoResultException {
         Map<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#t", "timestamp");
+        nameMap.put("#t", SORT_TIMESTAMP_NAME);
+        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
         QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("sensor_id = :id and #t <= :time")
+                .withKeyConditionExpression("#s = :id and #t <= :time")
                 .withNameMap(nameMap)
                 .withValueMap(new ValueMap()
                         .withString(":id", SENSOR_ID)
@@ -106,7 +110,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         //get the closest higher result
         if (!items.iterator().hasNext()) {
             querySpec = new QuerySpec()
-                    .withKeyConditionExpression("sensor_id = :id and #t > :time")
+                    .withKeyConditionExpression("#s = :id and #t > :time")
                     .withNameMap(nameMap)
                     .withValueMap(new ValueMap()
                             .withString(":id", SENSOR_ID)
@@ -115,20 +119,23 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
 
             items = table.query(querySpec);
         }
-        if(!items.iterator().hasNext()){
+        if (!items.iterator().hasNext()) {
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
     }
 
-    private long getEarliestEntry(){
+    private long getEarliestEntry() {
+        Map<String, String> nameMap = new HashMap<String, String>();
+        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
         QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("sensor_id = :id")
-
+                .withKeyConditionExpression("#s = :id")
+                .withNameMap(nameMap)
                 .withValueMap(new ValueMap()
                         .withString(":id", SENSOR_ID))
                 .withMaxResultSize(1)
-                .withAttributesToGet("timestamp");
-        return Long.parseLong(table.query(querySpec).iterator().next().getJSON("timestamp"));
+                .withAttributesToGet(VALUE_TIMESTAMP_FULL_NAME);
+        System.out.print(table.query(querySpec).iterator().next().toString()+"\n");
+        return Long.parseLong(table.query(querySpec).iterator().next().toString());
     }
 }
