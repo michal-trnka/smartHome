@@ -6,7 +6,6 @@ import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.json.JSONArray;
 
@@ -14,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String DYNAMODB_TABLE_NAME = "temperature";
@@ -22,9 +20,10 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     private final String VALUE_FIELD_NAME = "value";
     private final String SORT_TIMESTAMP_NAME = "timestamp";
     private final String SENSOR_ID_FIELD_NAME = "sensor_id";
-    private final String VALUE_NAME = "value";
     private final int COUNT = 100;
+
     private Table table;
+    Map<String, String> nameMap;
 
     /**
      * Gets temperature history.
@@ -35,9 +34,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
      * @return JSON array of found temperature records
      */
     public String handleRequest(TemperatureRequest input, Context context) {
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-        DynamoDB dynamoDb = new DynamoDB(client);
-        table = dynamoDb.getTable(DYNAMODB_TABLE_NAME);
+        init();
 
         long[] times = getTimes(input.getFrom(), input.getTo(), COUNT);
 
@@ -67,16 +64,15 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
             to = new Date().getTime();
         }
 
-        if (from == 0) {
-            from = getEarliestEntry();
-            System.out.print(from);
-        }
-
         if (to < from) {
             long temp = to;
             to = from;
             from = temp;
         }
+
+        from = getEarliestEntry(from);
+        to = getLatestEntry(to);
+
         long[] times = new long[count];
         times[0] = from;
         times[count - 1] = to;
@@ -95,9 +91,7 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
     }
 
     public String getResultForTime(long time) throws NoResultException {
-        Map<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#t", SORT_TIMESTAMP_NAME);
-        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
+
         QuerySpec querySpec = new QuerySpec()
                 .withKeyConditionExpression("#s = :id and #t <= :time")
                 .withNameMap(nameMap)
@@ -127,19 +121,45 @@ public class Handler implements RequestHandler<TemperatureRequest, String> {
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);
     }
 
-    private long getEarliestEntry() {
-        Map<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
-        nameMap.put("#v", VALUE_FIELD_NAME);
+    private long getEarliestEntry(long startTime) {
         QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("#s = :id")
+                .withKeyConditionExpression("#s = :id and #t >= :time")
                 .withValueMap(new ValueMap()
-                        .withString(":id", SENSOR_ID))
+                        .withString(":id", SENSOR_ID)
+                        .withLong(":time", startTime))
                 .withMaxResultSize(1)
                 .withProjectionExpression("#v")
                 .withNameMap(nameMap);
+        return queryAndExtractTime(querySpec);
+    }
+
+    private long getLatestEntry(long endTime) {
+        QuerySpec querySpec = new QuerySpec()
+                .withKeyConditionExpression("#s = :id and #t <= :time")
+                .withValueMap(new ValueMap()
+                        .withString(":id", SENSOR_ID)
+                        .withLong(":time", endTime))
+                .withMaxResultSize(1)
+                .withProjectionExpression("#v")
+                .withScanIndexForward(false)
+                .withNameMap(nameMap);
+        return queryAndExtractTime(querySpec);
+    }
+
+    private long queryAndExtractTime(QuerySpec querySpec){
         Map map = (Map) table.query(querySpec).iterator().next().get("value");
         BigDecimal time = (BigDecimal) map.get("time");
         return time.longValue();
+    }
+
+    private void init(){
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+        DynamoDB dynamoDb = new DynamoDB(client);
+        table = dynamoDb.getTable(DYNAMODB_TABLE_NAME);
+
+        nameMap = new HashMap<String, String>();
+        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
+        nameMap.put("#v", VALUE_FIELD_NAME);
+        nameMap.put("#t", SORT_TIMESTAMP_NAME);
     }
 }
