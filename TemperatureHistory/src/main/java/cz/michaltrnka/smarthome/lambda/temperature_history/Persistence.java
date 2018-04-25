@@ -61,7 +61,6 @@ public class Persistence {
             items = table.query(querySpec);
         }
         if (!items.iterator().hasNext()) {
-            System.out.print(items.getAccumulatedItemCount());
             throw new NoResultException();
         }
         return items.iterator().next().getJSON(VALUE_FIELD_NAME);

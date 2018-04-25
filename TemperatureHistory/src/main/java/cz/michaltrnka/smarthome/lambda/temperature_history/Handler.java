@@ -2,7 +2,6 @@ package cz.michaltrnka.smarthome.lambda.temperature_history;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import org.json.JSONArray;
 
 public class Handler implements RequestHandler<Request, String> {
     private final int DEFAULT_COUNT = 100;
@@ -21,12 +20,6 @@ public class Handler implements RequestHandler<Request, String> {
      * @return JSON array of found temperature records
      */
     public String handleRequest(Request input, Context context) {
-        JSONArray ar = new JSONArray();
-        System.out.println(ar.toString());
-        ar = new JSONArray();
-        ar.put("");
-        System.out.println(ar.toString());
-
         service = new Service();
         sanitizeInputs(input);
 
