@@ -1,163 +1,60 @@
 package cz.michaltrnka.smarthome.lambda.temperature_history;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.*;
-import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
-import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.json.JSONArray;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+public class Handler implements RequestHandler<Request, String> {
+    private final int DEFAULT_COUNT = 100;
+    private Service service;
 
-public class Handler implements RequestHandler<TemperatureRequest, String> {
-    private final String DYNAMODB_TABLE_NAME = "temperature";
-    private final String SENSOR_ID = "temperatureSensor";
-    private final String VALUE_FIELD_NAME = "value";
-    private final String SORT_TIMESTAMP_NAME = "timestamp";
-    private final String SENSOR_ID_FIELD_NAME = "sensor_id";
-    private final int COUNT = 100;
-
-    private Table table;
 
     /**
      * Gets temperature history.
      * <p>
-     * From and To parameters are inclusive,
+     * From and To parameters are inclusive. If the count is 1 then the latest record is retrieved if the "to" is
+     * specified. If the "from" is specified, the first record is retrieved. If both time elements are specified,
+     * the latest record is retrieved only if it is in the range. If the count value is high, it may contain
+     * duplicates. Too high count will not result in all records as paging to the DB is not implemented.
      *
-     * @param input Input to get temperatures from to date, including
+     * @param input Input to get temperatures from to date (inclusive), count of records to get.
      * @return JSON array of found temperature records
      */
-    public String handleRequest(TemperatureRequest input, Context context) {
-        init();
+    public String handleRequest(Request input, Context context) {
+        JSONArray ar = new JSONArray();
+        System.out.println(ar.toString());
+        ar = new JSONArray();
+        ar.put("");
+        System.out.println(ar.toString());
 
-        long[] times = getTimes(input.getFrom(), input.getTo(), COUNT);
+        service = new Service();
+        sanitizeInputs(input);
 
-        JSONArray json = new JSONArray();
-        for (long time : times) {
-            context.getLogger().log(time + "\n");
-            try {
-                json.put(getResultForTime(time));
-            } catch (NoResultException e) {
-                // nothing to do
+        if(input.getCount()==1){
+            if(input.getFrom()==0 && input.getTo()==0){
+                return service.getLatestTemperature();
             }
+            if(input.getFrom()==0){
+                return service.getLatestTemperatureBefore(input.getTo());
+            }
+            if(input.getTo()==0){
+                return service.getEarliestTemperatureAfter(input.getFrom());
+            }
+            return service.getLatestTemperatureBetween(input.getTo(), input.getFrom());
         }
 
-        return json.toString();
+        return service.getTemperaturesBetween(input.getFrom(), input.getTo(), input.getCount());
     }
 
-    /**
-     * Get approximate times for sampling the time range for given amount of results
-     *
-     * @param from  time to start
-     * @param to    time to finish
-     * @param count count of results
-     * @return approximate times for results
-     */
-    public long[] getTimes(long from, long to, int count) {
-        if (to == 0) {
-            to = new Date().getTime();
+    private void sanitizeInputs(Request input){
+        if(input.getCount()==0){
+            input.setCount(DEFAULT_COUNT);
         }
 
-        if (to < from) {
-            long temp = to;
-            to = from;
-            from = temp;
+        if(input.getTo() < input.getFrom()){
+            long temp = input.getTo();
+            input.setTo(input.getFrom());
+            input.setFrom(temp);
         }
-
-        from = getEarliestEntry(from);
-        to = getLatestEntry(to);
-
-        long[] times = new long[count];
-        times[0] = from;
-        times[count - 1] = to;
-
-        if (count <= 2) {
-            return times;
-        }
-
-        long period = (to - from) / (count - 1);
-
-        for (int i = 1; i < count; i++) {
-            times[i] = from + i * period;
-        }
-
-        return times;
-    }
-
-    private String getResultForTime(long time) throws NoResultException {
-        Map<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
-        nameMap.put("#v", VALUE_FIELD_NAME);
-        QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("#s = :id and #t <= :time")
-                .withNameMap(nameMap)
-                .withValueMap(new ValueMap()
-                        .withString(":id", SENSOR_ID)
-                        .withLong(":time", time))
-                .withMaxResultSize(1)
-                .withScanIndexForward(false);
-
-        ItemCollection<QueryOutcome> items = table.query(querySpec);
-        //get the closest higher result
-        if (!items.iterator().hasNext()) {
-            querySpec = new QuerySpec()
-                    .withKeyConditionExpression("#s = :id and #t > :time")
-                    .withNameMap(nameMap)
-                    .withValueMap(new ValueMap()
-                            .withString(":id", SENSOR_ID)
-                            .withLong(":time", time))
-                    .withMaxResultSize(1);
-
-            items = table.query(querySpec);
-        }
-        if (!items.iterator().hasNext()) {
-            System.out.print(items.getAccumulatedItemCount());
-            throw new NoResultException();
-        }
-        return items.iterator().next().getJSON(VALUE_FIELD_NAME);
-    }
-
-    private long getEarliestEntry(long startTime) {
-        QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("#s = :id and #t >= :time")
-                .withValueMap(new ValueMap()
-                        .withString(":id", SENSOR_ID)
-                        .withLong(":time", startTime));
-        return finishQueryAndReturnTime(querySpec);
-    }
-
-    private long getLatestEntry(long endTime) {
-        QuerySpec querySpec = new QuerySpec()
-                .withKeyConditionExpression("#s = :id and #t <= :time")
-                .withValueMap(new ValueMap()
-                        .withString(":id", SENSOR_ID)
-                        .withLong(":time", endTime))
-                .withScanIndexForward(false);
-        return finishQueryAndReturnTime(querySpec);
-    }
-
-    private long finishQueryAndReturnTime(QuerySpec querySpec){
-        Map<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#s", SENSOR_ID_FIELD_NAME);
-        nameMap.put("#v", VALUE_FIELD_NAME);
-        nameMap.put("#t", SORT_TIMESTAMP_NAME);
-
-        querySpec.withNameMap(nameMap)
-                .withMaxResultSize(1)
-                .withProjectionExpression("#v");;
-        Map map = (Map) table.query(querySpec).iterator().next().get("value");
-        BigDecimal time = (BigDecimal) map.get("time");
-        return time.longValue();
-    }
-
-    private void init(){
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-        DynamoDB dynamoDb = new DynamoDB(client);
-        table = dynamoDb.getTable(DYNAMODB_TABLE_NAME);
     }
 }
